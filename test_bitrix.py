@@ -107,7 +107,7 @@ def print_fail(s):
 def get_composite_data(session, target):
     data = {}
     r = session.get(f'{target}bitrix/tools/composite_data.php', verify=False)
-    if r.status_code != 200:
+    if r.status_code != 200 or r.text == "[]":
         print_fail(
             f'There is a composite data error. Status code {r.status_code}. Check out {target}bitrix/tools/composite_data.php')
         return None
